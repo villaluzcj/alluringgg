@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine's Card with Tulip</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        /* Loading */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            opacity: 0.7;
+            animation: fadeInOut 2s infinite;
+            z-index: 100;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Tulip Container */
+        .tulip-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 300px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Tulip Stem */
+        .stem {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 180px;
+            background: linear-gradient(to top, #2d5a27, #3a7c31);
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(46, 125, 50, 0.3);
+        }
+
+        .stem::before {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 15px;
+            background: #3a7c31;
+            border-radius: 50%;
+            top: 40px;
+            left: -8px;
+            transform: rotate(-20deg);
+        }
+
+        .stem::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 12px;
+            background: #3a7c31;
+            border-radius: 50%;
+            top: 80px;
+            right: -6px;
+            transform: rotate(15deg);
+        }
+
+        /* Tulip Bud (Closed) */
+        .bud {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(45deg, #e91e63, #d81b60);
+            border-radius: 50% 50% 40% 40%;
+            transition: all 2s ease;
+            box-shadow: 
+                inset 0 10px 20px rgba(255, 255, 255, 0.2),
+                inset 0 -10px 20px rgba(0, 0, 0, 0.2),
+                0 5px 15px rgba(233, 30, 99, 0.3);
+            z-index: 2;
+        }
+
+        /* Tulip Petals (Initially Hidden) */
+        .petal {
+            position: absolute;
+            width: 50px;
+            height: 70px;
+            background: linear-gradient(45deg, #e91e63, #d81b60);
+            border-radius: 50% 50% 40% 40%;
+            opacity: 0;
+            transform-origin: bottom center;
+            transition: all 1.5s ease 0.5s;
+        }
+
+        .petal-1 { transform: rotate(0deg) translateY(-20px); }
+        .petal-2 { transform: rotate(60deg) translateY(-20px); }
+        .petal-3 { transform: rotate(120deg) translateY(-20px); }
+        .petal-4 { transform: rotate(180deg) translateY(-20px); }
+        .petal-5 { transform: rotate(240deg) translateY(-20px); }
+        .petal-6 { transform: rotate(300deg) translateY(-20px); }
+
+        /* Tulip Opening Animation */
+        .tulip-open .bud {
+            transform: translateX(-50%) scale(0.8);
+            opacity: 0.7;
+        }
+
+        .tulip-open .petal {
+            opacity: 1;
+            transform: rotate(var(--angle)) translateY(-60px) scale(1.1);
+        }
+
+        /* Card Container */
+        .card-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 320px;
+            height: 420px;
+            perspective: 1000px;
+            opacity: 0;
+            transition: all 1s ease 2s;
+            z-index: 20;
+        }
+
+        .card-show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        /* Card */
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s ease;
+            cursor: pointer;
+        }
+
+        .card-open {
+            transform: rotateY(180deg);
+        }
+
+        /* Card Front */
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #ff5f8a, #ff9a9e);
+            color: white;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #fff5f7, #ffeef1);
+            color: #ff3b6b;
+            transform: rotateY(180deg);
+            overflow: hidden;
+        }
+
+        /* Heart on Front */
+        .heart {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: heartbeat 1.5s infinite;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Title */
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        /* Message Styling */
+        .message {
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 20px 0;
+            padding: 0 10px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .from {
+            font-style: italic;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #ff6b9d;
+        }
+
+        /* Instructions */
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* Decorations */
+        .decorations {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 3s infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Text -->
+    <div class="loading" id="loading">Preparing something special...</div>
+
+    <!-- Tulip -->
+    <div class="tulip-container" id="tulipContainer">
+        <div class="stem"></div>
+        <div class="bud"></div>
+        <div class="petal petal-1"></div>
+        <div class="petal petal-2"></div>
+        <div class="petal petal-3"></div>
+        <div class="petal petal-4"></div>
+        <div class="petal petal-5"></div>
+        <div class="petal petal-6"></div>
+    </div>
+
+    <!-- Card -->
+    <div class="card-container" id="cardContainer">
+        <div class="card" id="card">
+            <div class="card-front">
+                <div class="heart">❤️</div>
+                <h1>For You</h1>
+                <h2>ALLURING</h2>
+                <p class="instructions">Click to open</p>
+            </div>
+            <div class="card-back">
+                <h2>💖 Message 💖</h2>
+                <div class="message" id="message">
+                    You make my world bloom brighter every day.
+                </div>
+                <div class="from" id="from">– With all my love</div>
+                <p class="instructions">Click to close</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decorations -->
+    <div class="decorations" id="decorations"></div>
+
+    <script>
+        // Messages array
+        const messages = [
+            {
+                text: "You make my world bloom brighter every day. 🌹",
+                from: "– With all my love"
+            },
+            {
+                text: "Every moment with you feels like a beautiful dream. ✨",
+                from: "– Forever yours"
+            },
+            {
+                text: "My heart found its home in you. 💝",
+                from: "– From Me"
+            },
+            {
+                text: "You're the sunshine that brightens my darkest days. ☀️",
+                from: "– Always thinking of you"
+            },
+            {
+                text: "With you, every day feels like Valentine's Day. 💕",
+                from: "– Endlessly in love"
+            },
+            {
+                text: "You're the missing piece I've been searching for. 🧩",
+                from: "– Your soulmate"
+            },
+            {
+                text: "My love for you grows stronger with each passing day. 🌱",
+                from: "– Growing with you"
+            },
+            {
+                text: "You're the most beautiful story my heart has ever told. 📖",
+                from: "– Your storyteller"
+            }
+            
+
+            
+        ];
+
+        // DOM Elements
+        const loading = document.getElementById('loading');
+        const tulipContainer = document.getElementById('tulipContainer');
+        const cardContainer = document.getElementById('cardContainer');
+        const card = document.getElementById('card');
+        const messageElement = document.getElementById('message');
+        const fromElement = document.getElementById('from');
+        const decorations = document.getElementById('decorations');
+
+        let currentMessageIndex = 0;
+        let isCardOpen = false;
+
+        // Create decorative sparkles
+        function createSparkles() {
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = `${Math.random() * 100}%`;
+                sparkle.style.top = `${Math.random() * 100}%`;
+                sparkle.style.animationDelay = `${Math.random() * 3}s`;
+                decorations.appendChild(sparkle);
+            }
+        }
+
+        // Tulip opening animation
+        function openTulip() {
+            console.log("Starting tulip animation...");
+            
+            // Add opening class to tulip after delay
+            setTimeout(() => {
+                console.log("Adding tulip-open class");
+                tulipContainer.classList.add('tulip-open');
+                
+                // Set CSS variables for petal angles
+                const petals = document.querySelectorAll('.petal');
+                petals.forEach((petal, index) => {
+                    const angle = index * 60;
+                    petal.style.setProperty('--angle', `${angle}deg`);
+                });
+                
+                // After tulip opens, show card
+                setTimeout(() => {
+                    console.log("Showing card...");
+                    loading.style.display = 'none';
+                    cardContainer.classList.add('card-show');
+                }, 1500);
+            }, 1000);
+        }
+
+        // Update message when card is opened
+        function updateMessage() {
+            const message = messages[currentMessageIndex];
+            messageElement.textContent = message.text;
+            fromElement.textContent = message.from;
+            
+            // Move to next message
+            currentMessageIndex = (currentMessageIndex + 1) % messages.length;
+        }
+
+        // Card click handler
+        card.addEventListener('click', function() {
+            if (!isCardOpen) {
+                // Opening the card - show new message
+                updateMessage();
+                isCardOpen = true;
+            } else {
+                // Closing the card
+                isCardOpen = false;
+            }
+            
+            card.classList.toggle('card-open');
+        });
+
+        // Initialize everything when page loads
+        window.addEventListener('load', function() {
+            console.log("Page loaded, starting animation...");
+            createSparkles();
+            openTulip();
+        });
+
+        // Also start on DOMContentLoaded as backup
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM loaded");
+        });
+    </script>
+</body>
+</html>
